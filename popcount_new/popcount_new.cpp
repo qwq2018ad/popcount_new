@@ -186,37 +186,14 @@ int main() {
         encodedBuffer1[bufferIndex] |= (baseBit << bitShift);  // 將 baseBit 左移並存入對應的位置
     }
 
-    //int buffer2Sizes = (atcgStr2_Count + 21 - 1) / 21;//無條件進位 分為n串 1串處理21字元
-    //unsigned long long* atcgBitBuffer2 = new unsigned long long[buffer2Sizes];
-
-    //jSize = (atcgStr2_Count < 21) ? atcgStr2_Count : 21;
-    //for (int i = 0; i < buffer2Sizes; i++) {
-    //    unsigned long long kk = 0;//?
-    //    for (int j = 0; j < jSize; j++) {
-    //        char base = atcgStr2[i * jSize + j];
-    //        unsigned long long baseBit = base_lookup(base) & 0b111;
-    //        if (i != 0)
-    //            kk = baseBit;
-    //        else
-    //            kk = (kk << 3) | baseBit;
-    //        //kk = (kk << ((i != 0) ? 3:0)) &baseBit;
-    //        bitset<12> baseBitbinary(baseBit);
-    //        bitset<12> kkbinary(kk);
-    //        /*cout << base << ":" << baseBitbinary << endl;
-    //        cout << "kk" << ":" << kkbinary << endl;*/
-
-    //    }
-    //    /*cout << kk;*/
-    //    atcgBitBuffer2[i] = kk;
-    //}
-
-    int str2Length = atcgStr2.length();
+    int str2Length = atcgStr2.length(); //charsPerULL=21
     int buffer2Sizes = (str2Length + charsPerULL - 1) / charsPerULL;  // 計算需要的 ULL 數量
     unsigned long long* encodedBuffer2 = new unsigned long long[buffer2Sizes];
 
     for (int i = 0; i < buffer2Sizes; i++) {
         encodedBuffer2[i] = 0;
     }
+
     // 對字串進行編碼
     for (int i = 0; i < str2Length; ++i) {
         unsigned long long baseBit = base_lookup(atcgStr2[i]) & 0b111;;  // 獲取字符的 3 位編碼
@@ -224,27 +201,6 @@ int main() {
         int bitShift2 = (charsPerULL - 1 - (i % charsPerULL)) * 3;  // 計算該字符在 ULL 中的偏移量
         encodedBuffer2[buffer2Index] |= (baseBit << bitShift2);  // 將 baseBit 左移並存入對應的位置
     }
-
-    /*for (char base : atcgStr1) {
-        if (atcgmapToBit.find(base) != atcgmapToBit.end()) {
-            bitStr1 += atcgmapToBit[base];
-        }
-        else {
-            cout << "無效字符: " << base << endl;
-            return 1;
-        }
-    }*/
-
-
-    //for (char base : atcgStr2) {
-    //    if (atcgmapToBit.find(base) != atcgmapToBit.end()) {
-    //        bitStr2 += atcgmapToBit[base];
-    //    }
-    //    else {
-    //        cout << "無效字符: " << base << endl;
-    //        return 1;
-    //    }
-    //}
 
     //if (bitStr1.length() != bitStr2.length()) {
     //    cout << "字符串長度不匹配，無法計算漢明距離" << endl;
