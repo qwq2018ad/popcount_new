@@ -54,6 +54,7 @@ unsigned long long generate_WitnessBit(int m, int n, int sliceIndex) {
     unsigned long long result = 0;
     int patternSize = m + 1;  // 模式的長度，例如 100 的長度是 3
     int totalBits = patternSize * (n);  // 總位數，即模式長度乘以重複次數
+    int one_bits = 21;
     int bitsPerSlice = 63;  // 每個切片的位數（如果需要支持其他位數，這裡可以修改）21一切片，不要乘開?
 
     // 計算應該跳過的位數
@@ -64,8 +65,8 @@ unsigned long long generate_WitnessBit(int m, int n, int sliceIndex) {
 
     int i;
     // 生成模式並填充到 result 中
-    for (i = 0; i < 21; ++i) {
-        result = result << 3 | 0b100;
+    for (i = 0; i < one_bits; ++i) {
+        result = result << patternSize | 0b100;
     }
     return result;
 }
@@ -92,7 +93,7 @@ int calculateHammingDistance(unsigned long long* buffer1, unsigned long long* bu
     for (int i = 0; i < totalSlices; ++i) {
         B_WitnessBit = generate_WitnessBit(m, n, i);
         bitset<64> B_WitnessBitbinary(B_WitnessBit);
-        cout << "B_WitnessBitbinary" << ":" << B_WitnessBitbinary << endl;
+        //cout << "B_WitnessBitbinary" << ":" << B_WitnessBitbinary << endl;
         BinvWitnessBit = ~B_WitnessBit;
 
         num1 = buffer1[i];
@@ -120,8 +121,11 @@ int main() {
     double log2_atcgmap_Count = log2(static_cast<double>(atcgmap_Count));
     ceilLog2_atcgmap_Count = static_cast<int>(ceil(log2_atcgmap_Count));
 
-    //string atcgStr1 = "GGTCGAGTGAAATCTTTGAGAAGAAGGGGGGAACCTCTGTAGTTTGTGCTACTGCTAAGGGAGG";//64
-    //string atcgStr2 = "GGTCGAGTGAAATCTTTGAGAAGAAGGGGGGAACCTCTGTAGTTTGTGCTACTGCTAAGGGAGG";//64
+    auto s = chrono::high_resolution_clock::now();//計算字串轉換時間
+
+    string atcgStr1 = "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG";//64
+    string atcgStr2 = "ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG";//64
+
 
     //string atcgStr1 = "TGTAACATTGTTCTAGGGACAAGCGGGAAGCA";//32
     //string atcgStr2 = "TGTAACATTGTTCTAGGGACAAGCGGGAAGCA";//32 
@@ -129,39 +133,39 @@ int main() {
     //string atcgStr1 = "AAAATTTTCCCCGGGG";// 16/12
     //string atcgStr2 = "ATCGATCGATCGATCG";// 16
 
-    //string atcgStr1 = "ATCTGTAG";//8
+    //string atcgStr1 = "AAAAAAAA";//8
     //string atcgStr2 = "ATCGATCG";//8 
 
     //string atcgStr1 = "AAAA";//12
     //string atcgStr2 = "ATCG";//12
     // 
     // 檔案名稱
-    string filename1 = "d1_4.txt";
-    string filename2 = "d2_4.txt";
+    //string filename1 = "d1_4.txt";
+    //string filename2 = "d2_4.txt";
 
-    ifstream infile1(filename1);       // 以讀取模式打開檔案
-    ifstream infile2(filename2);       // 以讀取模式打開檔案
+    //ifstream infile1(filename1);       // 以讀取模式打開檔案
+    //ifstream infile2(filename2);       // 以讀取模式打開檔案
 
-    // 檢查檔案是否成功打開
-    if (!infile1) {
-        cerr << "無法打開檔案 " << filename1 << endl;
-        return 1;
-    }
+    //// 檢查檔案是否成功打開
+    //if (!infile1) {
+    //    cerr << "無法打開檔案 " << filename1 << endl;
+    //    return 1;
+    //}
 
-    // 檢查檔案是否成功打開
-    if (!infile2) {
-        cerr << "無法打開檔案 " << filename2 << endl;
-        return 1;
-    }
+    //// 檢查檔案是否成功打開
+    //if (!infile2) {
+    //    cerr << "無法打開檔案 " << filename2 << endl;
+    //    return 1;
+    //}
 
-    stringstream buffer1;
-    stringstream buffer2;
+    //stringstream buffer1;
+    //stringstream buffer2;
 
-    buffer1 << infile1.rdbuf();  // 將檔案內容讀入到 stringstream 中
-    buffer2 << infile2.rdbuf();  // 將檔案內容讀入到 stringstream 中
+    //buffer1 << infile1.rdbuf();  // 將檔案內容讀入到 stringstream 中
+    //buffer2 << infile2.rdbuf();  // 將檔案內容讀入到 stringstream 中
 
-    string atcgStr1 = buffer1.str();  // 將 stringstream 中的內容轉換為 string
-    string atcgStr2 = buffer2.str();
+    //string atcgStr1 = buffer1.str();  // 將 stringstream 中的內容轉換為 string
+    //string atcgStr2 = buffer2.str();
 
 
     atcgStr1_Count = atcgStr1.length();
@@ -198,9 +202,12 @@ int main() {
     for (int i = 0; i < str2Length; ++i) {
         unsigned long long baseBit = base_lookup(atcgStr2[i]) & 0b111;;  // 獲取字符的 3 位編碼
         int buffer2Index = i / charsPerULL;  // 計算當前字符對應的 ULL 緩衝區索引
-        int bitShift2 = (charsPerULL - 1 - (i % charsPerULL)) * 3;  // 計算該字符在 ULL 中的偏移量
+        int bitShift2 = (charsPerULL - 1 - (i - charsPerULL * (i/charsPerULL) )) * 3;  // 計算該字符在 ULL 中的偏移量
         encodedBuffer2[buffer2Index] |= (baseBit << bitShift2);  // 將 baseBit 左移並存入對應的位置
     }
+
+    auto e = chrono::high_resolution_clock::now();//計算字串轉換時間
+    chrono::duration<double> da = e - s; //計算字串轉換時間
 
     //if (bitStr1.length() != bitStr2.length()) {
     //    cout << "字符串長度不匹配，無法計算漢明距離" << endl;
@@ -209,27 +216,27 @@ int main() {
 
     double at = 0;
     int j = 0;
-    for (j = 0; j < 1; j++) {
+    for (j = 0; j < 1000000000; j++) {
         auto start = chrono::high_resolution_clock::now();
         int hammingDistance = calculateHammingDistance(encodedBuffer1, encodedBuffer2);
         auto end = chrono::high_resolution_clock::now();
         // 輸出結果
-        cout << atcgStr1 << " 的二進制表示: "<<endl;
-        for (size_t i = 0; i < buffer1Sizes; ++i) {
-            bitset<64> baseBitbinary(encodedBuffer1[i]);
-            //cout << "1234567890123456789012345678901234567890123456789012345678901234567890" << endl;
-            //cout << "ULL[ " << i << " ]: " << encodedBuffer1[i] << endl;
-            cout << baseBitbinary << endl;
-        }
-        cout << atcgStr2 << " 的二進制表示: " << endl;
-        for (size_t i = 0; i < buffer2Sizes; ++i) {
-            bitset<64> baseBit2binary(encodedBuffer2[i]);
-            //cout << "1234567890123456789012345678901234567890123456789012345678901234567890" << endl;
-            //cout << "ULL[ " << i << " ]: " << encodedBuffer1[i] << endl;
-            cout << baseBit2binary << endl;
-        }
-        cout << endl;
-        cout << "漢明距離: " << hammingDistance << endl;
+        //cout << atcgStr1 << " 的二進制表示: "<<endl;
+        //for (size_t i = 0; i < buffer1Sizes; ++i) {
+        //    bitset<64> baseBitbinary(encodedBuffer1[i]);
+        //    //cout << "1234567890123456789012345678901234567890123456789012345678901234567890" << endl;
+        //    //cout << "ULL[ " << i << " ]: " << encodedBuffer1[i] << endl;
+        //    cout << baseBitbinary << endl;
+        //}
+        //cout << atcgStr2 << " 的二進制表示: " << endl;
+        //for (size_t i = 0; i < buffer2Sizes; ++i) {
+        //    bitset<64> baseBit2binary(encodedBuffer2[i]);
+        //    //cout << "1234567890123456789012345678901234567890123456789012345678901234567890" << endl;
+        //    //cout << "ULL[ " << i << " ]: " << encodedBuffer1[i] << endl;
+        //    cout << baseBit2binary << endl;
+        //}
+        //cout << endl;
+        //cout << "漢明距離: " << hammingDistance << endl;
 
         // 計算經過的時間
         chrono::duration<double> duration = end - start;
@@ -238,6 +245,7 @@ int main() {
         //cout << "程式執行時間: " << duration.count() << " s" << endl;
         at += duration.count();
     }
+    at+= da.count();
     cout << "長度為 " << atcgStr1.length() << " time : " << at << endl;
     
     return 0;
