@@ -169,52 +169,60 @@ int main() {
 
     string bitStr1, bitStr2;
     //read str to ULL
-    int buffer1Sizes = (atcgStr1_Count + 21 - 1) / 21;//無條件進位 分為n串 1串處理21字元
-    unsigned long long* atcgBitBuffer1 = new unsigned long long[buffer1Sizes];
-
-    int jSize = (atcgStr1_Count < 21) ? atcgStr1_Count : 21;
+    int charsPerULL = 21;  // 每個 unsigned long long 存儲 21 個字符
+    int strLength = atcgStr1.length();
+    int buffer1Sizes = (strLength + charsPerULL - 1) / charsPerULL;  // 計算需要的 ULL 數量
+    unsigned long long* encodedBuffer1 = new unsigned long long[buffer1Sizes];
+   
     for (int i = 0; i < buffer1Sizes; i++) {
-        unsigned long long kk = 0;//?
-        for (int j = 0; j < jSize; j++) {
-            char base = atcgStr1[i * jSize + j];
-            unsigned long long baseBit = base_lookup(base) & 0b111;
-            if (i != 0)
-                kk = baseBit;
-            else
-                kk = (kk << 3) | baseBit;
-            //kk = (kk << ((i != 0) ? 3:0)) &baseBit;
-            bitset<12> baseBitbinary(baseBit);
-            bitset<12> kkbinary(kk);
-            /*cout << base << ":" << baseBitbinary << endl;
-            cout << "kk" << ":" << kkbinary << endl;*/
-
-        }
-        /*cout << kk;*/
-        atcgBitBuffer1[i] = kk;
+        encodedBuffer1[i] = 0;
     }
 
-    int buffer2Sizes = (atcgStr2_Count + 21 - 1) / 21;//無條件進位 分為n串 1串處理21字元
-    unsigned long long* atcgBitBuffer2 = new unsigned long long[buffer2Sizes];
+    // 對字串進行編碼
+    for (int i = 0; i < strLength; ++i) {
+        unsigned long long baseBit = base_lookup(atcgStr1[i]) & 0b111;;  // 獲取字符的 3 位編碼
+        int bufferIndex = i / charsPerULL;  // 計算當前字符對應的 ULL 緩衝區索引
+        int bitShift = (charsPerULL - 1 - (i % charsPerULL)) * 3;  // 計算該字符在 ULL 中的偏移量
+        encodedBuffer1[bufferIndex] |= (baseBit << bitShift);  // 將 baseBit 左移並存入對應的位置
+    }
 
-    jSize = (atcgStr2_Count < 21) ? atcgStr2_Count : 21;
+    //int buffer2Sizes = (atcgStr2_Count + 21 - 1) / 21;//無條件進位 分為n串 1串處理21字元
+    //unsigned long long* atcgBitBuffer2 = new unsigned long long[buffer2Sizes];
+
+    //jSize = (atcgStr2_Count < 21) ? atcgStr2_Count : 21;
+    //for (int i = 0; i < buffer2Sizes; i++) {
+    //    unsigned long long kk = 0;//?
+    //    for (int j = 0; j < jSize; j++) {
+    //        char base = atcgStr2[i * jSize + j];
+    //        unsigned long long baseBit = base_lookup(base) & 0b111;
+    //        if (i != 0)
+    //            kk = baseBit;
+    //        else
+    //            kk = (kk << 3) | baseBit;
+    //        //kk = (kk << ((i != 0) ? 3:0)) &baseBit;
+    //        bitset<12> baseBitbinary(baseBit);
+    //        bitset<12> kkbinary(kk);
+    //        /*cout << base << ":" << baseBitbinary << endl;
+    //        cout << "kk" << ":" << kkbinary << endl;*/
+
+    //    }
+    //    /*cout << kk;*/
+    //    atcgBitBuffer2[i] = kk;
+    //}
+
+    int str2Length = atcgStr2.length();
+    int buffer2Sizes = (str2Length + charsPerULL - 1) / charsPerULL;  // 計算需要的 ULL 數量
+    unsigned long long* encodedBuffer2 = new unsigned long long[buffer2Sizes];
+
     for (int i = 0; i < buffer2Sizes; i++) {
-        unsigned long long kk = 0;//?
-        for (int j = 0; j < jSize; j++) {
-            char base = atcgStr2[i * jSize + j];
-            unsigned long long baseBit = base_lookup(base) & 0b111;
-            if (i != 0)
-                kk = baseBit;
-            else
-                kk = (kk << 3) | baseBit;
-            //kk = (kk << ((i != 0) ? 3:0)) &baseBit;
-            bitset<12> baseBitbinary(baseBit);
-            bitset<12> kkbinary(kk);
-            /*cout << base << ":" << baseBitbinary << endl;
-            cout << "kk" << ":" << kkbinary << endl;*/
-
-        }
-        /*cout << kk;*/
-        atcgBitBuffer2[i] = kk;
+        encodedBuffer2[i] = 0;
+    }
+    // 對字串進行編碼
+    for (int i = 0; i < str2Length; ++i) {
+        unsigned long long baseBit = base_lookup(atcgStr2[i]) & 0b111;;  // 獲取字符的 3 位編碼
+        int buffer2Index = i / charsPerULL;  // 計算當前字符對應的 ULL 緩衝區索引
+        int bitShift2 = (charsPerULL - 1 - (i % charsPerULL)) * 3;  // 計算該字符在 ULL 中的偏移量
+        encodedBuffer2[buffer2Index] |= (baseBit << bitShift2);  // 將 baseBit 左移並存入對應的位置
     }
 
     /*for (char base : atcgStr1) {
@@ -247,17 +255,22 @@ int main() {
     int j = 0;
     for (j = 0; j < 1; j++) {
         auto start = chrono::high_resolution_clock::now();
-        int hammingDistance = calculateHammingDistance(atcgBitBuffer1, atcgBitBuffer2);
+        int hammingDistance = calculateHammingDistance(encodedBuffer1, encodedBuffer2);
         auto end = chrono::high_resolution_clock::now();
         // 輸出結果
-        cout << atcgStr1 << " 的二進制表示: ";
-        for (int i = 0; i < buffer1Sizes; i++) {
-            cout << atcgBitBuffer1[i] << " "; // 使用cout輸出每個元素
+        cout << atcgStr1 << " 的二進制表示: "<<endl;
+        for (size_t i = 0; i < buffer1Sizes; ++i) {
+            bitset<64> baseBitbinary(encodedBuffer1[i]);
+            //cout << "1234567890123456789012345678901234567890123456789012345678901234567890" << endl;
+            //cout << "ULL[ " << i << " ]: " << encodedBuffer1[i] << endl;
+            cout << baseBitbinary << endl;
         }
-        cout << endl;
-        cout << atcgStr2 << " 的二進制表示: ";
-        for (int i = 0; i < buffer2Sizes; i++) {
-            cout << atcgBitBuffer2[i] << " "; // 使用cout輸出每個元素
+        cout << atcgStr2 << " 的二進制表示: " << endl;
+        for (size_t i = 0; i < buffer2Sizes; ++i) {
+            bitset<64> baseBit2binary(encodedBuffer2[i]);
+            //cout << "1234567890123456789012345678901234567890123456789012345678901234567890" << endl;
+            //cout << "ULL[ " << i << " ]: " << encodedBuffer1[i] << endl;
+            cout << baseBit2binary << endl;
         }
         cout << endl;
         cout << "漢明距離: " << hammingDistance << endl;
