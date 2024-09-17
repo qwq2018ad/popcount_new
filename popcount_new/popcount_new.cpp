@@ -28,22 +28,14 @@ int base_lookup(char base) {
     default: throw std::invalid_argument("Invalid DNA base");
     }
 }
-unsigned long long generate_WitnessBit(int m, int n, int sliceIndex) {
+unsigned long long generate_WitnessBit(int m, int l, int sliceIndex) {
 
     unsigned long long result = 0;
     int patternSize = m + 1;  // 模式的長度，例如 100 的長度是 3
-    int one_bits = n;
-    int bitsPerSlice = l*3;  // 每個切片的位數（如果需要支持其他位數，這裡可以修改）21一切片，不要乘開?
-
-    // 計算應該跳過的位數
-    int startBit = sliceIndex * bitsPerSlice;//100<<3 | 100
-    int move = (1 << m);
-    // 計算模式在切片中的起始位置
-    int currentBit = startBit;
-
-    int i;
+    int bitsPerSlice = l*3;  // WitnessBit每個切片的位數
+    
     // 生成模式並填充到 result 中
-    for (i = 0; i < one_bits; ++i) {
+    for (int i = 0; i < l; ++i) {
         result = result << patternSize | 0b100;
     }
     return result;
@@ -97,19 +89,25 @@ vector<int> SlidingWindow(unsigned long long* buffer1, int l,int buffer1Sizes) {
     cout << "Tsize - l + 1 :" << Tsize - l + 1 << endl;*/
     for (int i = 0; i < Tsize - l + 1; i++) {
         unsigned long long bi = buffer1[i];
-        /*bitset<12> bibinary(bi);
+        bitset<24> bibinary(bi);
         cout << i << " :" << bibinary << endl;
-        //cout <<i<<" :" << s << endl;*/
         int distance = 0;
         xorResult = b1 ^ bi;
-
+        /*bitset<18> xorResultbinary(xorResult);
+        cout << "xorResul" << ":" << xorResultbinary << endl;*/
         B_WitnessBit = generate_WitnessBit(m, l, i);
-        //bitset<64> B_WitnessBitbinary(B_WitnessBit);
+        //bitset<18> B_WitnessBitbinary(B_WitnessBit);
         //cout << "B_WitnessBitbinary" << ":" << B_WitnessBitbinary << endl;
         BinvWitnessBit = ~B_WitnessBit;
-
+        /*unsigned long long k;
+        k = ((xorResult + BinvWitnessBit) & B_WitnessBit);*/
         distance = popcount((xorResult + BinvWitnessBit) & B_WitnessBit);
+
+        //bitset<18> kbinary(k);
+        //cout << "kbinary " << ":" << kbinary << endl;
+        //
         //cout << "distance :" << distance<<endl;
+
         result.push_back(distance);
 
     }
@@ -117,7 +115,7 @@ vector<int> SlidingWindow(unsigned long long* buffer1, int l,int buffer1Sizes) {
 }
 int main() {
     auto s = chrono::high_resolution_clock::now();//計算字串轉換時間
-    l = 5; //4, 8, 16
+    l = 4; //4, 8, 16
     unordered_map<char, unsigned char> atcgmapToBit = {
         {'A', 0},
         {'T', 1},
@@ -133,27 +131,28 @@ int main() {
 
     //string T = "GAGTCAGAGTAGAGTCAGAGTAGAGTCAGAGTAGAGTCAGAGTA";//32
 
-    //string T = "AAAATTTTCCCCGGGG";// 16/12
+    //string T = "AAAATTTTCCCCGGGG";// 16
 
-    //string T = "GAGTCAGAGTA";//8 
+    string T = "GAGTCAGAGTA";//11 
+    cout << "T :" << T<<endl;
 
     //string T = "GGCC";//4
 
     //檔案名稱
-    string filename1 = "dna_500M.txt";
-    ifstream infile1(filename1);       // 以讀取模式打開檔案
+    //string filename1 = "dna_500M.txt";
+    //ifstream infile1(filename1);       // 以讀取模式打開檔案
 
-    // 檢查檔案是否成功打開
-    if (!infile1) {
-        cerr << "無法打開檔案 " << filename1 << endl;
-        return 1;
-    }
+    //// 檢查檔案是否成功打開
+    //if (!infile1) {
+    //    cerr << "無法打開檔案 " << filename1 << endl;
+    //    return 1;
+    //}
 
-    stringstream buffer1;
+    //stringstream buffer1;
 
-    buffer1 << infile1.rdbuf();  // 將檔案內容讀入到 stringstream 中
+    //buffer1 << infile1.rdbuf();  // 將檔案內容讀入到 stringstream 中
 
-    string T = buffer1.str();  // 將 stringstream 中的內容轉換為 string
+    //string T = buffer1.str();  // 將 stringstream 中的內容轉換為 string
 
     Tsize = T.length();
     //read str to ULL
@@ -163,9 +162,9 @@ int main() {
    
     for (int i = 0; i < buffer1Sizes; i++) {
         encodedBuffer1[i] = 0;
-    }
+    }//maybe 可刪除
 
-    encodedBuffer1[0] = 0b111111111111;
+    encodedBuffer1[0] = 0;
     for (int i = 0; i < l ; i++)
         encodedBuffer1[0] = (encodedBuffer1[0]<<3 |base_lookup(T[i]));
         /*bitset<15> Buffer1binary(encodedBuffer1[0]);//l*3
@@ -173,13 +172,15 @@ int main() {
     // 對字串進行編碼
     for (int i = 1; i < Tsize -l+1; ++i) {
         unsigned long long baseBit = base_lookup(T[i+l-1]) & 0b111;  // 獲取字符的 3 位編碼
-        encodedBuffer1[i] = (encodedBuffer1[i-1] << 3|baseBit);  // 將 baseBit 左移並存入對應的位置
+        encodedBuffer1[i] = (encodedBuffer1[i-1]) << 3|baseBit;  // 將 encodedBuffer1 左移
+        //?加入&000 111 111 111
+
         /*bitset<15> Buffer1binary(encodedBuffer1[i]);//l*3
         cout << "Buffer"<<i << " :" << Buffer1binary << endl;*/
     }
 
     auto e = chrono::high_resolution_clock::now();//計算字串轉換時間
-    chrono::duration<double> da = e - s; //計算字串轉換時間
+    chrono::duration<double> trans = e - s; //計算字串轉換時間
 
     double at = 0;
     int j = 0;
@@ -195,10 +196,26 @@ int main() {
         //    cout << baseBitbinary << endl;
         //}
 
-        //for (int i = 0; i < result.size(); ++i) {// one substring
-        //    cout << result[i] << " ";
+        for (int i = 0; i < result.size(); ++i) {// one substring
+            cout << result[i] << " ";
+        }
+
+        //std::ofstream outFile("output.txt");
+
+        //// 檢查文件是否成功打開
+        //if (outFile.is_open()) {
+        //    // 將陣列的每個元素寫入文件，並用空格分隔
+        //    for (int i = 0; i < result.size(); ++i) {
+        //        outFile << result[i];
+        //    }
+        //    outFile.close(); // 完成後關閉文件
+        //    std::cout << "陣列已成功寫入 output.txt 文件！" << std::endl;
+        //}
+        //else {
+        //    std::cout << "無法打開文件。" << std::endl;
         //}
 
+        cout  << endl;
         // 計算經過的時間
         chrono::duration<double> duration = end - start;
 
@@ -206,8 +223,10 @@ int main() {
         //cout << "程式執行時間: " << duration.count() << " s" << endl;
         at += duration.count();
     }
-    at+= da.count();
-    cout << "長度為 " << Tsize << " time : " << at << endl;
+    double transtime = 0;
+    transtime= trans.count();
+    cout << "l= " << l << " distance time : " << at << endl;
+    cout << "l= " << l << " 轉換 time : " << transtime << endl;
     return 0;
 
 }
