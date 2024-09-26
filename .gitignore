@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+dna_1G.txt
+dna_500M.txt
+output.txt
+
 # User-specific files
 *.rsuser
 *.suo
