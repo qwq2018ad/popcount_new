@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <time.h>
+#include <chrono>
 using namespace std;
 
 int ceilLog2_atcgmap_Count; //全域變數字母表數量
@@ -100,12 +101,12 @@ void SlidingWindow(unsigned long long* buffer1, int* result, int l,int buffer1Si
 int main() {
     for (int num = 0; num < 2; num++) {
         if(num == 0)
-            printf(" num=0 , switch");
+            printf(" num=0 , 查表");
         if (num == 1)
-            printf(" num=1 , 查表");
-        for (int l = 4; l < 8; l++) {
+            printf(" num=1 , switch");
+        for (int l = 4; l < 10; l++) {
             //int l = 5;
-            clock_t start1_time = clock();
+            auto start1_time = std::chrono::high_resolution_clock::now();
 
 
             size_t atcgmap_Count = 4;
@@ -153,63 +154,63 @@ int main() {
 
             // 請在這裡處理變數 T 中的檔案內容
 
-            clock_t end1_time = clock();
+            auto end1_time = std::chrono::high_resolution_clock::now();
 
-            clock_t start2_time = clock();
+            auto start2_time = std::chrono::high_resolution_clock::now();
             int Tsize = strlen(T);  // 計算字串 T 的長度
 
             //read str to ULL
             //int buffer1Sizes = (Tsize - l + 2)*(Tsize - l + 1) / 2;  // 計算需要的 buffer 數量
             int buffer1Sizes = (Tsize - l + 1);  // 計算需要的 buffer 數量
 
-            clock_t start3_time, end3_time=0;
+            std::chrono::high_resolution_clock::time_point start3_time, end3_time;
             if (num == 1) {
-                start3_time = clock();
+                start3_time = std::chrono::high_resolution_clock::now();
                 initLookupTable();  // 初始化查找表
                 unsigned long long nextBits = 0;  // 下一個可用的位元編碼從 0 開始
 
                 encodeDNA(T, &nextBits);  // 編碼 DNA 字串
-                end3_time = clock();
+                end3_time = std::chrono::high_resolution_clock::now();
             }
 
             unsigned long long* encodedBuffer1 = (unsigned long long*)calloc(buffer1Sizes, sizeof(unsigned long long));
-            if (num == 0)
+            if (num == 1)
                 for (int i = 0; i < l; i++) {
                     encodedBuffer1[0] = (encodedBuffer1[0] << 3 | base_lookup(T[i]));//old
                 }
-            if (num == 1)
+            if (num == 0)
                 for (int i = 0; i < l; i++) {
                     encodedBuffer1[0] = (encodedBuffer1[0] << 3 | lookupTable[T[i]]);//new
                 }
 
             int temp = l - 1;
             // 對字串進行編碼
-            if (num == 0)
+            if (num == 1)
                 for (int i = 1; i < buffer1Sizes; ++i) {
                     unsigned long long baseBit = base_lookup(T[i + temp]) & 0b111;  // 獲取字符的 3 位編碼
                     encodedBuffer1[i] = (encodedBuffer1[i - 1]) << 3 | baseBit;  // 將 encodedBuffer1 左移
                 }
-            if (num == 1)
+            if (num == 0)
                 for (int i = 1; i < buffer1Sizes; ++i) {
                     unsigned long long baseBit = lookupTable[T[i + temp]] & 0b111;  // 獲取字符的 3 位編碼
                     encodedBuffer1[i] = (encodedBuffer1[i - 1]) << 3 | baseBit;  // 將 encodedBuffer1 左移
                 }
 
-            clock_t end2_time = clock();
+            auto end2_time = std::chrono::high_resolution_clock::now();
 
-            double readtime = (double)(end1_time - start1_time) / CLOCKS_PER_SEC;
-            double converttime = (double)(end2_time - start2_time) / CLOCKS_PER_SEC;
+            std::chrono::duration<double> readtime = end1_time - start1_time;
+            std::chrono::duration<double> converttime = end2_time - start2_time;
 
             int j = 0;
 
             int* result = (int*)malloc(buffer1Sizes * sizeof(int));
-            \
 
-                clock_t start_time, end_time;
+            std::chrono::high_resolution_clock::time_point start_time, end_time;
             for (j = 0; j < 1; j++) {
-                start_time = clock();
+
+                start_time = std::chrono::high_resolution_clock::now();
                 SlidingWindow(encodedBuffer1, result, l, buffer1Sizes);
-                end_time = clock();
+                end_time = std::chrono::high_resolution_clock::now();
                 //輸出結果
                 //cout << T << " 的二進制表示: "<<endl;
                 //for (size_t i = 0; i < buffer1Sizes; ++i) {
@@ -238,13 +239,13 @@ int main() {
 
                 printf("\n");
             }
-            double distancetime = (double)(end_time - start_time) / CLOCKS_PER_SEC;
-            double encodetime = (double)(end3_time - start3_time) / CLOCKS_PER_SEC;//初始化+字母編碼
+            std::chrono::duration<double> distancetime = end_time - start_time;
+            std::chrono::duration<double> encodetime = end3_time - start3_time;//初始化+字母編碼
             /*printf("l= %d read file time : %f\n", l, readtime);
             printf("l= %d convert time : %f\n", l, converttime);
             printf("l= %d distance time : %f\n", l, distancetime);
             printf("l= %d 分配時間 : %f\n", l, ttest);*/
-            printf("%f %f %f %f\n", readtime, converttime, distancetime, encodetime);
+            printf("%f %f %f %f\n", readtime.count(), converttime.count(), distancetime.count(), encodetime.count());
 
 
             free(encodedBuffer1);
