@@ -100,11 +100,15 @@ void SlidingWindow(unsigned long long* buffer1, int* result, int l,int buffer1Si
 }
 int main() {
     for (int num = 0; num < 2; num++) {
-        if(num == 0)
-            printf(" num=0 , 查表");
-        if (num == 1)
-            printf(" num=1 , switch");
-        for (int l = 4; l < 10; l++) {
+        if (num == 0) {
+            printf("num=0 , switch\n");
+            printf("       ReadFile:   轉換:        Sliding:    table:\n");
+        }
+        if (num == 1) {
+            printf("num=1 , 查表\n");
+            printf("       ReadFile:   轉換:        Sliding:    table:\n");
+        }
+        for (int l = 4; l < 17; l++) {
             //int l = 5;
             auto start1_time = std::chrono::high_resolution_clock::now();
 
@@ -120,7 +124,7 @@ int main() {
             //cout << "T :" << T<<endl;
 
             // 檔案名稱
-            const char* filename1 = "dna_1G.txt";
+            const char* filename1 = "dna_500M.txt";
             FILE* infile1;
             errno_t err = fopen_s(&infile1, filename1, "r");  // 使用 fopen_s
 
@@ -174,23 +178,23 @@ int main() {
             }
 
             unsigned long long* encodedBuffer1 = (unsigned long long*)calloc(buffer1Sizes, sizeof(unsigned long long));
-            if (num == 1)
+            if (num == 0)
                 for (int i = 0; i < l; i++) {
                     encodedBuffer1[0] = (encodedBuffer1[0] << 3 | base_lookup(T[i]));//old
                 }
-            if (num == 0)
+            if (num == 1)
                 for (int i = 0; i < l; i++) {
                     encodedBuffer1[0] = (encodedBuffer1[0] << 3 | lookupTable[T[i]]);//new
                 }
 
             int temp = l - 1;
             // 對字串進行編碼
-            if (num == 1)
+            if (num == 0)
                 for (int i = 1; i < buffer1Sizes; ++i) {
                     unsigned long long baseBit = base_lookup(T[i + temp]) & 0b111;  // 獲取字符的 3 位編碼
                     encodedBuffer1[i] = (encodedBuffer1[i - 1]) << 3 | baseBit;  // 將 encodedBuffer1 左移
                 }
-            if (num == 0)
+            if (num == 1)
                 for (int i = 1; i < buffer1Sizes; ++i) {
                     unsigned long long baseBit = lookupTable[T[i + temp]] & 0b111;  // 獲取字符的 3 位編碼
                     encodedBuffer1[i] = (encodedBuffer1[i - 1]) << 3 | baseBit;  // 將 encodedBuffer1 左移
@@ -198,8 +202,8 @@ int main() {
 
             auto end2_time = std::chrono::high_resolution_clock::now();
 
-            std::chrono::duration<double> readtime = end1_time - start1_time;
-            std::chrono::duration<double> converttime = end2_time - start2_time;
+            std::chrono::duration<double, std::milli> readtime = end1_time - start1_time;
+            std::chrono::duration<double, std::milli> converttime = end2_time - start2_time;
 
             int j = 0;
 
@@ -236,16 +240,14 @@ int main() {
                 //else {
                 //    std::cout << "無法打開文件。" << std::endl;
                 //}
-
-                printf("\n");
             }
-            std::chrono::duration<double> distancetime = end_time - start_time;
-            std::chrono::duration<double> encodetime = end3_time - start3_time;//初始化+字母編碼
+            std::chrono::duration<double, std::milli> distancetime = end_time - start_time;
+            std::chrono::duration<double, std::milli> encodetime = end3_time - start3_time;//初始化+字母編碼
             /*printf("l= %d read file time : %f\n", l, readtime);
             printf("l= %d convert time : %f\n", l, converttime);
             printf("l= %d distance time : %f\n", l, distancetime);
             printf("l= %d 分配時間 : %f\n", l, ttest);*/
-            printf("%f %f %f %f\n", readtime.count(), converttime.count(), distancetime.count(), encodetime.count());
+            printf("l= %2d, %f, %f, %f, %f\n",l, readtime.count(), converttime.count(), distancetime.count(), encodetime.count());
 
 
             free(encodedBuffer1);
