@@ -108,9 +108,10 @@ int main() {
             printf("num=1 , 查表\n");
             printf("       ReadFile:   轉換:        Sliding:    table:\n");
         }
-        for (int l = 4; l < 17; l++) {
+        for (int l = 4; l < 17; l+=4) {
             //int l = 5;
-            auto start1_time = std::chrono::high_resolution_clock::now();
+            auto start1_time_high = std::chrono::high_resolution_clock::now();
+            clock_t start1_time_clock = clock();
 
 
             size_t atcgmap_Count = 4;
@@ -118,10 +119,8 @@ int main() {
             double log2_atcgmap_Count = log2(static_cast<double>(atcgmap_Count));
             ceilLog2_atcgmap_Count = static_cast<int>(ceil(log2_atcgmap_Count));
 
-            //int ceillog2_atcgmap_Count = ceil(log2(static_cast<int>(atcgmap_Count)));
-
-            //string T = "GAGTCAGAGTA";//11 
-            //cout << "T :" << T<<endl;
+            auto start_readfile_time_high = std::chrono::high_resolution_clock::now();
+            clock_t start_readfile_time_clock = clock();
 
             // 檔案名稱
             const char* filename1 = "dna_500M.txt";
@@ -158,23 +157,30 @@ int main() {
 
             // 請在這裡處理變數 T 中的檔案內容
 
-            auto end1_time = std::chrono::high_resolution_clock::now();
+            auto end1_time_high = std::chrono::high_resolution_clock::now();
+            clock_t end1_time_clock = clock();
 
-            auto start2_time = std::chrono::high_resolution_clock::now();
+            auto start2_time_high = std::chrono::high_resolution_clock::now();
+            clock_t start2_time_clock = clock();
+
             int Tsize = strlen(T);  // 計算字串 T 的長度
 
             //read str to ULL
             //int buffer1Sizes = (Tsize - l + 2)*(Tsize - l + 1) / 2;  // 計算需要的 buffer 數量
             int buffer1Sizes = (Tsize - l + 1);  // 計算需要的 buffer 數量
 
-            std::chrono::high_resolution_clock::time_point start3_time, end3_time;
+            std::chrono::high_resolution_clock::time_point start3_time_high, end3_time_high;
+            clock_t start3_time_clock, end3_time_clock;
             if (num == 1) {
-                start3_time = std::chrono::high_resolution_clock::now();
+                start3_time_high = std::chrono::high_resolution_clock::now();
+                start3_time_clock = clock();
+
                 initLookupTable();  // 初始化查找表
                 unsigned long long nextBits = 0;  // 下一個可用的位元編碼從 0 開始
 
                 encodeDNA(T, &nextBits);  // 編碼 DNA 字串
-                end3_time = std::chrono::high_resolution_clock::now();
+                end3_time_high = std::chrono::high_resolution_clock::now();
+                end3_time_clock = clock();
             }
 
             unsigned long long* encodedBuffer1 = (unsigned long long*)calloc(buffer1Sizes, sizeof(unsigned long long));
@@ -200,21 +206,27 @@ int main() {
                     encodedBuffer1[i] = (encodedBuffer1[i - 1]) << 3 | baseBit;  // 將 encodedBuffer1 左移
                 }
 
-            auto end2_time = std::chrono::high_resolution_clock::now();
+            auto end2_time_high = std::chrono::high_resolution_clock::now();
+            clock_t end2_time_clock = clock();
 
-            std::chrono::duration<double, std::milli> readtime = end1_time - start1_time;
-            std::chrono::duration<double, std::milli> converttime = end2_time - start2_time;
+            std::chrono::duration<double, std::milli> readtime_high = end1_time_high - start_readfile_time_high;
+            std::chrono::duration<double, std::milli> converttime_high = end2_time_high - start2_time_high;
+            double readtime_clock = (static_cast<double>(end1_time_clock - start_readfile_time_clock) / CLOCKS_PER_SEC)*1000.0;
+            double converttime_clock = (static_cast<double>(end2_time_clock - start2_time_clock) / CLOCKS_PER_SEC) * 1000.0;
 
             int j = 0;
 
             int* result = (int*)malloc(buffer1Sizes * sizeof(int));
 
-            std::chrono::high_resolution_clock::time_point start_time, end_time;
+            std::chrono::high_resolution_clock::time_point start_time_high, end_time_high;
+            clock_t start_time_clock, end_time_clock;
             for (j = 0; j < 1; j++) {
 
-                start_time = std::chrono::high_resolution_clock::now();
+                start_time_high = std::chrono::high_resolution_clock::now();
+                start_time_clock = clock();
                 SlidingWindow(encodedBuffer1, result, l, buffer1Sizes);
-                end_time = std::chrono::high_resolution_clock::now();
+                end_time_high = std::chrono::high_resolution_clock::now();
+                end_time_clock = clock();
                 //輸出結果
                 //cout << T << " 的二進制表示: "<<endl;
                 //for (size_t i = 0; i < buffer1Sizes; ++i) {
@@ -241,14 +253,19 @@ int main() {
                 //    std::cout << "無法打開文件。" << std::endl;
                 //}
             }
-            std::chrono::duration<double, std::milli> distancetime = end_time - start_time;
-            std::chrono::duration<double, std::milli> encodetime = end3_time - start3_time;//初始化+字母編碼
+            std::chrono::duration<double, std::milli> distancetime_high = end_time_high - start_time_high;
+            std::chrono::duration<double, std::milli> encodetime_high = end3_time_high - start3_time_high;//初始化+字母編碼
+            double distancetime_clock = (static_cast<double>(end_time_clock - start_time_clock) / CLOCKS_PER_SEC) * 1000.0;
+            double encodetime_clock = (static_cast<double>(end3_time_clock - start3_time_clock) / CLOCKS_PER_SEC) * 1000.0;
+
+            
             /*printf("l= %d read file time : %f\n", l, readtime);
             printf("l= %d convert time : %f\n", l, converttime);
             printf("l= %d distance time : %f\n", l, distancetime);
             printf("l= %d 分配時間 : %f\n", l, ttest);*/
-            printf("l= %2d, %f, %f, %f, %f\n",l, readtime.count(), converttime.count(), distancetime.count(), encodetime.count());
-
+            printf("l= %2d, %f, %f, %f, %f\n",l, readtime_high.count(), converttime_high.count(), distancetime_high.count(), encodetime_high.count());
+            printf("l= %2d, %f, %f, %f, %f\n", l, readtime_clock, converttime_clock, distancetime_clock, encodetime_clock);
+            printf("\n");
 
             free(encodedBuffer1);
             encodedBuffer1 = NULL;  // C 中指針釋放後設為 NULL
